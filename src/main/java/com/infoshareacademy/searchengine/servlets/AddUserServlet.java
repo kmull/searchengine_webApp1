@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
-@WebServlet("/add-user")
+@WebServlet("/AddUserServlet")
 public class AddUserServlet extends HelloServlet {
 
     @EJB
@@ -23,12 +23,13 @@ public class AddUserServlet extends HelloServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
         PrintWriter writer = resp.getWriter();
+        resp.setContentType("text/html;charset=UTF-8");
 
         String stringId = req.getParameter("id");
-        String name = req.getParameter("imie");
-        String surname = req.getParameter("nazwisko");
+        String name = req.getParameter("name");
+        String surname = req.getParameter("surname");
         String login = req.getParameter("login");
-        String stringAge = req.getParameter("wiek");
+        String stringAge = req.getParameter("age");
 
         int id;
         int age;
@@ -45,25 +46,29 @@ public class AddUserServlet extends HelloServlet {
         }
 
         List<User> myUser = usersRepositoryDao.getUsersList();
-        User user = new User();
-
-
-        if ((name != null) && (surname != null) && (login != null) && (age != 0) && (id != 0)) {
+        if (!(name.equals("")) && !(surname.equals("")) && !(login.equals("")) && (age != 0) && (id != 0)) {
             for (User userTmp : myUser) {
                 if (userTmp.getId() == id) {
-                    writer.println(HttpServletResponse.SC_BAD_REQUEST);
+                    writer.println("blad nr: " + HttpServletResponse.SC_CONFLICT +
+                            " - W systemie istnieje juz uzytkownik o tym numerze id");
                     return;
                 }
             }
+            User user = new User();
             user.setId(id);
             user.setName(name);
             user.setSurname(surname);
             user.setLogin(login);
             user.setAge(age);
             usersRepositoryDao.addUser(user);
+        } else {
+            writer.println("blad nr: " + HttpServletResponse.SC_BAD_REQUEST +
+                    " - Wprowadzane dane sa niekompletne lub bledne, blad nr: ");
+            return;
         }
-        resp.setContentType("text/html;charset=UTF-8");
-        writer.println("<!DOCTYPE html><html><body>");
+
+        writer.println("<!DOCTYPE html><html><body>Lista osob w naszym repozytorium: " +
+                "<br/><br/>");
         for (User user1 : myUser) {
             writer.println("imie: " + user1.getName() + "<br/>" +
                     "nazwisko: " + user1.getSurname() + "<br/>" +
@@ -73,5 +78,10 @@ public class AddUserServlet extends HelloServlet {
                     "<br/><br/>" +
                     "</body></html>");
         }
+//         stringId = null;
+//         name = null;
+//         surname = null;
+//         login = null;
+//         stringAge = null;
     }
 }
